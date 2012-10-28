@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hi</title>
+<script type="text/javascript" src="jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="badwords.js"></script>
+<script type="text/javascript" src="wordsearch.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $('#generate').on('click', function(){
+        // grab all the words from the textbox
+        var words = $.trim($('#words').val());
+        words = words.split("\n");
+        for(var i = 0; i < words.length; i++){
+            words[i] = $.trim(words[i]);
+        }
+
+        // init the wordsearch
+        var ws = new WordSearch(words, BADWORDS);
+
+        // get the directions
+        var dirs = $('input[name=direction]:checked');
+        var allowed_dirs = [];
+        for(var i = 0; i < dirs.length; i++){
+            allowed_dirs.push(parseInt($(dirs[i]).val(), 10));
+        }
+
+        // generate the word search grid
+        var size = 20;
+        var grid = ws.generate(size, size, allowed_dirs);
+
+        // any failed words?
+        if(ws.missingWords().length != 0){
+            alert("These words could not be placed on the grid...");
+            for(var i = 0; i < ws.missingWords().length; i++){
+                alert(words[ws.missingWords()[i]]);
+            }
+        }
+
+        if(ws.missingWords().length == words.length){
+            alert("Failed to put any words on word search!")
+        } else {
+            // pretty print the output
+            var show_answers = true;
+            $("#wordsearch").html(ws.htmlFor(grid, show_answers));
+        }
+    });
+
+    $('#check').on('click', function(){
+        var val = $.trim($('#checkcontent').val());
+        var ws = new WordSearch([], BADWORDS);
+        var badwords = ws.findBadWordsInWordSearchString(val);
+        if(badwords){
+            $('#badwords').html("");
+            for(var i = 0; i < badwords.length; i++){
+                var bw = badwords[i];
+                $('#badwords').append("<li>" + bw.word + "</li>");
+            }
+        } else {
+            $('#badwords').html("<li>No badwords!</li>");
+        }
+    });
+});
+</script>
+
+<style type="text/css">
+#wordsearch {
+    font-family:monospace;
+    font-size:24px;
+    letter-spacing:10px;
+}
+
+label {
+    display:block;
+}
+</style>
+</head>
+<body>
+<div id="wordsearch"></div>
+<table>
+    <tr>
+        <td>
+            <h1>Enter your words</h1>
+            <textarea id="words" rows="20" cols="20">alpha
+beta
+gamma
+delta
+epsilon
+zeta
+eta
+theta
+iota
+kappa
+lambda
+mu
+nu
+xi
+omicron
+phi
+rho
+sigma
+tau
+upsilon
+phi
+chi
+psi
+omega 
+</textarea></td>
+        <td>
+            <label><input type="checkbox" name="direction" value="1"  checked="true"/>Left to right</label>
+            <label><input type="checkbox" name="direction" value="4"  checked="true"/>Up to down</label>
+            <label><input type="checkbox" name="direction" value="8"  checked="true"/>Down to up</label>
+            <label><input type="checkbox" name="direction" value="16" checked="true" />Upper-left to buttom-right</label>
+            <label><input type="checkbox" name="direction" value="64" />Bottom-left to upper-right</label>
+            <label><input type="checkbox" name="direction" value="2" />Right to left</label>
+            <label><input type="checkbox" name="direction" value="32" />Upper-right to bottom-left</label>
+            <label><input type="checkbox" name="direction" value="128" />Bottom-right to upper-left</label>
+            <input type="button" id="generate" value="Generate!" />
+        </td>
+    </tr>
+</table>
+
+<h1>Check generated word search (perhaps from a different word search algorithm?) for bad words</h1> 
+<p>Note: This reports substrings of "good" words as badwords (e.g. "hell" in "hello")</p>
+<textarea id="checkcontent" name="check" rows="20" cols="50">HELLO
+ALPHA
+BSAJF
+ASSJK
+</textarea>
+<br />
+<input type="button" id="check" value="check!" />
+<ol id="badwords">
+
+</ol>
+</body>
+</html>
